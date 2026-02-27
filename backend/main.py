@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from langchain_community.vectorstores import SupabaseVectorStore
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
@@ -21,9 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Supabase + embeddings
+# Supabase + embeddings (OpenAI)
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-embeddings = OpenAIEmbeddings()   # использует OPENAI_API_KEY
+embeddings = OpenAIEmbeddings()
 
 vector_store = SupabaseVectorStore(
     client=supabase,
@@ -32,12 +33,15 @@ vector_store = SupabaseVectorStore(
     query_name="match_documents",
 )
 
-# Только Grok (твой ключ)
+# Grok LLM
 llm = ChatOpenAI(
     model="grok-beta",
     base_url="https://api.x.ai/v1",
     api_key=os.getenv("GROK_API_KEY")
 )
+
+class ChatRequest(BaseModel):
+    message: str
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
@@ -55,11 +59,12 @@ async def upload(file: UploadFile = File(...)):
     return {"status": "ok", "filename": file.filename}
 
 @app.post("/chat")
-async def chat(message: str):
+async def chat(request: ChatRequest):
+    message = request.message
     docs = vector_store.similarity_search(message, k=4)
     context = "\n".join([d.page_content for d in docs])
     
-    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian:"
+    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian, be helpful and concise:"
     response = llm.invoke([HumanMessage(content=prompt)])
     
     return {
