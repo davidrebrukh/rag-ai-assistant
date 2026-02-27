@@ -1,55 +1,68 @@
-'use client';
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_community.vectorstores import SupabaseVectorStore
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+import os
+from dotenv import load_dotenv
+from supabase import create_client
+import tempfile
+from pypdf import PdfReader
 
-import { Upload } from 'lucide-react';
-import { useState } from 'react';
+load_dotenv()
 
-export default function FileUpload() {
-  const [uploading, setUploading] = useState(false);
-  const [uploaded, setUploaded] = useState<string[]>([]);
+app = FastAPI(title="RAG AI Assistant")
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+# Supabase + embeddings
+supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+embeddings = OpenAIEmbeddings()   # использует OPENAI_API_KEY
 
-    try {
-      await fetch('http://localhost:8000/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      setUploaded(prev => [...prev, file.name]);
-    } catch (err) {
-      alert('Ошибка загрузки (backend должен быть запущен)');
+vector_store = SupabaseVectorStore(
+    client=supabase,
+    embedding=embeddings,
+    table_name="documents",
+    query_name="match_documents",
+)
+
+# Только Grok (твой ключ)
+llm = ChatOpenAI(
+    model="grok-beta",
+    base_url="https://api.x.ai/v1",
+    api_key=os.getenv("GROK_API_KEY")
+)
+
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
+    content = await file.read()
+    text = ""
+    if file.filename.endswith(".pdf"):
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+            tmp.write(content)
+            reader = PdfReader(tmp.name)
+            text = "\n".join([page.extract_text() or "" for page in reader.pages])
+    else:
+        text = content.decode()
+
+    vector_store.add_texts([text])
+    return {"status": "ok", "filename": file.filename}
+
+@app.post("/chat")
+async def chat(message: str):
+    docs = vector_store.similarity_search(message, k=4)
+    context = "\n".join([d.page_content for d in docs])
+    
+    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian:"
+    response = llm.invoke([HumanMessage(content=prompt)])
+    
+    return {
+        "response": response.content,
+        "sources": [d.metadata for d in docs if d.metadata]
     }
-    setUploading(false);
-  };
-
-  return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 h-full">
-      <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mb-6">
-          <Upload className="w-8 h-8" />
-        </div>
-        <h3 className="text-2xl font-semibold mb-2">Загрузи документы</h3>
-        <p className="text-zinc-400 mb-8">PDF, DOCX, TXT — до 10 МБ</p>
-
-        <label className="cursor-pointer block bg-white hover:bg-zinc-100 transition text-black font-medium py-4 px-10 rounded-2xl text-lg">
-          {uploading ? 'Загрузка...' : 'Выбрать файл'}
-          <input type="file" className="hidden" onChange={handleUpload} accept=".pdf,.docx,.txt" />
-        </label>
-      </div>
-
-      {uploaded.length > 0 && (
-        <div className="mt-8">
-          <p className="text-sm text-zinc-400 mb-3">Загружено:</p>
-          {uploaded.map((f, i) => (
-            <div key={i} className="text-sm bg-zinc-800 rounded-xl px-4 py-2.5 mb-2">✅ {f}</div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
