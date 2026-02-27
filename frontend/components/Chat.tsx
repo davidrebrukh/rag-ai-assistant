@@ -24,6 +24,8 @@ export default function Chat({ model }: Props) {
     setInput('');
     setLoading(true);
 
+    console.log('Отправляем запрос на:', `${BACKEND_URL}/chat`, 'с данными:', { message: question });
+
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
@@ -31,15 +33,22 @@ export default function Chat({ model }: Props) {
         body: JSON.stringify({ message: question }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      console.log('Статус ответа:', res.status, res.statusText);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
 
       const data = await res.json();
+      console.log('Ответ от backend:', data);
+
       setMessages(prev => [...prev, { role: 'assistant', content: data.response || 'Нет ответа' }]);
     } catch (err: any) {
-      console.error(err);
+      console.error('ПОЛНАЯ ОШИБКА:', err);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: `❌ Ошибка: ${err.message}\nПроверь, запущен ли backend на Railway` 
+        content: `❌ Ошибка: ${err.message}\nОткрой F12 → Console и пришли мне полный текст ошибки!` 
       }]);
     }
     setLoading(false);
@@ -60,14 +69,12 @@ export default function Chat({ model }: Props) {
         {messages.length === 0 && (
           <div className="text-center text-zinc-400 mt-20">
             👋 Загрузи PDF и спроси что угодно!<br />
-            <span className="text-xs">Работает на Grok + настоящем RAG</span>
+            <span className="text-xs">Работает на Grok + RAG</span>
           </div>
         )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${
-              msg.role === 'user' ? 'bg-white text-black' : 'bg-zinc-800'
-            }`}>
+            <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${msg.role === 'user' ? 'bg-white text-black' : 'bg-zinc-800'}`}>
               {msg.content}
             </div>
           </div>
