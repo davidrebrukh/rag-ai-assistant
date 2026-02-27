@@ -9,45 +9,40 @@ Next.js 15 + FastAPI + Supabase pgvector + Grok / Claude 3.5 Sonnet / GPT-4o
 ![LangChain](https://img.shields.io/badge/LangChain-0.3-orange?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square)
 
-**Live Demo**: [🚀 Открыть демо](https://rag-ai-assistant-abcdef.vercel.app) ← **замени на свою Vercel ссылку**
+**🚀 Live Demo**: [Открыть демо](https://rag-ai-assistant-smoky.vercel.app)
 
 ---
 
 ## ✨ Возможности
-
-- Загрузка документов **PDF / DOCX / TXT**
-- Автоматический **RAG** (поиск по загруженным файлам)
+- Загрузка **PDF / DOCX / TXT**
+- Полноценный **RAG** (поиск по твоим документам)
 - **Streaming-ответы** в реальном времени
-- Поддержка трёх топовых моделей:
-  - **Grok** (xAI) 🚀
-  - **Claude 3.5 Sonnet** 🌲
-  - **GPT-4o** 🔥
-- Красивый современный интерфейс (тёмная тема)
-- Память чата + показ источников
+- 3 модели: **Grok** 🚀 • **Claude 3.5** 🌲 • **GPT-4o** 🔥
+- Красивый тёмный интерфейс + память чата
+- Показ источников
 
 ---
 
 ## 🛠 Tech Stack
 
-| Слой       | Технологии                              |
-|------------|-----------------------------------------|
-| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS |
-| **Backend**  | FastAPI, LangChain, LangSmith          |
-| **Vector DB** | Supabase (PostgreSQL + pgvector)      |
-| **LLM**      | Grok API, Anthropic, OpenAI            |
-| **Деплой**   | Vercel (frontend) + Railway/Supabase (backend) |
+| Слой         | Технологии                                      |
+|--------------|-------------------------------------------------|
+| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind   |
+| **Backend**  | FastAPI, LangChain                              |
+| **Vector DB**| Supabase (PostgreSQL + pgvector)                |
+| **LLM**      | Grok API, Anthropic, OpenAI                     |
 
 ---
 
-## 🚀 Как запустить локально (2 минуты)
+## 🚀 Как запустить локально
 
 ```bash
-# 1. Backend
+# Backend
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 
-# 2. Frontend (в новом терминале)
+# Frontend (новый терминал)
 cd ../frontend
 npm install
 npm run dev
