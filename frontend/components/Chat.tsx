@@ -30,11 +30,17 @@ export default function Chat({ model }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: question }),
       });
-      const data = await res.json();
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Ошибка соединения с backend' }]);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: 'assistant', content: data.response || 'Нет ответа' }]);
+    } catch (err: any) {
+      console.error(err);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `❌ Ошибка: ${err.message}\nПроверь, запущен ли backend на Railway` 
+      }]);
     }
     setLoading(false);
   };
@@ -47,14 +53,14 @@ export default function Chat({ model }: Props) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col h-[620px]">
       <div className="border-b border-zinc-800 p-6 flex items-center gap-3">
         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <span className="font-medium">Grok AI Assistant — Live</span>
+        <span className="font-medium">Grok AI Assistant — Live RAG</span>
       </div>
 
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
         {messages.length === 0 && (
           <div className="text-center text-zinc-400 mt-20">
-            👋 Загрузи документы и спроси что угодно!<br />
-            <span className="text-xs">Работает через Grok + RAG</span>
+            👋 Загрузи PDF и спроси что угодно!<br />
+            <span className="text-xs">Работает на Grok + настоящем RAG</span>
           </div>
         )}
         {messages.map((msg, i) => (
