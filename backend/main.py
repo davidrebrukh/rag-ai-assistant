@@ -2,7 +2,6 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_community.vectorstores import SupabaseVectorStore
 from langchain_openai import OpenAIEmbeddings
-from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 import os
@@ -15,11 +14,16 @@ load_dotenv()
 
 app = FastAPI(title="RAG AI Assistant")
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Supabase
+# Supabase + embeddings
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-embeddings = OpenAIEmbeddings()
+embeddings = OpenAIEmbeddings()   # использует OPENAI_API_KEY
 
 vector_store = SupabaseVectorStore(
     client=supabase,
@@ -28,11 +32,12 @@ vector_store = SupabaseVectorStore(
     query_name="match_documents",
 )
 
-llm_map = {
-    "grok": ChatOpenAI(model="grok-beta", base_url="https://api.x.ai/v1", api_key=os.getenv("GROK_API_KEY")),
-    "claude": ChatAnthropic(model="claude-3-5-sonnet-20241022", api_key=os.getenv("ANTHROPIC_API_KEY")),
-    "gpt": ChatOpenAI(model="gpt-4o", api_key=os.getenv("OPENAI_API_KEY")),
-}
+# Только Grok (твой ключ)
+llm = ChatOpenAI(
+    model="grok-beta",
+    base_url="https://api.x.ai/v1",
+    api_key=os.getenv("GROK_API_KEY")
+)
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
@@ -46,20 +51,18 @@ async def upload(file: UploadFile = File(...)):
     else:
         text = content.decode()
 
-    # Добавляем в векторную БД
     vector_store.add_texts([text])
     return {"status": "ok", "filename": file.filename}
 
 @app.post("/chat")
-async def chat(message: str, model: str = "grok"):
-    llm = llm_map.get(model, llm_map["grok"])
+async def chat(message: str):
     docs = vector_store.similarity_search(message, k=4)
     context = "\n".join([d.page_content for d in docs])
     
-    prompt = f"Context: {context}\n\nQuestion: {message}"
+    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian:"
     response = llm.invoke([HumanMessage(content=prompt)])
     
     return {
         "response": response.content,
-        "sources": [d.metadata for d in docs]
+        "sources": [d.metadata for d in docs if d.metadata]
     }
