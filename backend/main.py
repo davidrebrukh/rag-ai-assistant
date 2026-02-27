@@ -21,12 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check — чтобы проверить, жив ли backend
 @app.get("/health")
 async def health():
-    return {"status": "ok", "llm": "Grok", "message": "Backend работает!"}
+    return {"status": "ok", "llm": "Grok", "backend": "живой"}
 
-# Supabase + embeddings
+# Supabase
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 embeddings = OpenAIEmbeddings()
 
@@ -37,7 +36,7 @@ vector_store = SupabaseVectorStore(
     query_name="match_documents",
 )
 
-# Только Grok
+# Grok
 llm = ChatOpenAI(
     model="grok-beta",
     base_url="https://api.x.ai/v1",
@@ -55,7 +54,6 @@ async def upload(file: UploadFile = File(...)):
             text = "\n".join([page.extract_text() or "" for page in reader.pages])
     else:
         text = content.decode()
-
     vector_store.add_texts([text])
     return {"status": "ok", "filename": file.filename}
 
@@ -68,10 +66,7 @@ async def chat(data: dict):
     docs = vector_store.similarity_search(message, k=4)
     context = "\n".join([d.page_content for d in docs])
     
-    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian, be helpful:"
+    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian:"
     response = llm.invoke([HumanMessage(content=prompt)])
     
-    return {
-        "response": response.content,
-        "sources": [d.metadata for d in docs]
-    }
+    return {"response": response.content}
