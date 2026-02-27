@@ -1,38 +1,53 @@
 # RAG AI Assistant
 
-**Production Full-Stack RAG AI**  
-Next.js 15 + FastAPI + Supabase pgvector + Grok / Claude 3.5 / GPT-4o
+**Production-ready Full-Stack RAG AI**  
+Next.js 15 + FastAPI + Supabase pgvector + Grok / Claude 3.5 Sonnet / GPT-4o
 
-![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=flat-square) 
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?style=flat-square) 
-![Supabase](https://img.shields.io/badge/Supabase-pgvector-blue?style=flat-square) 
-![LangChain](https://img.shields.io/badge/LangChain-0.3-orange?style=flat-square) 
+![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?style=flat-square&logo=fastapi)
+![Supabase](https://img.shields.io/badge/Supabase-pgvector-blue?style=flat-square&logo=supabase)
+![LangChain](https://img.shields.io/badge/LangChain-0.3-orange?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square)
 
-## ✨ Features
-- Загрузка PDF / DOCX / TXT
-- Автоматический RAG (поиск по документам)
-- Streaming-ответы в реальном времени
-- Поддержка 3 моделей: **Grok**, **Claude 3.5 Sonnet**, **GPT-4o**
-- Красивый современный UI (shadcn-style + Tailwind)
-- Chat memory и sources
+**Live Demo**: [🚀 Открыть демо](https://rag-ai-assistant-abcdef.vercel.app) ← **замени на свою Vercel ссылку**
 
-## Tech Stack
-- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind
-- **Backend**: FastAPI, LangChain, Supabase
-- **Vector DB**: pgvector
-- **LLMs**: Grok API, Anthropic, OpenAI
+---
 
-## Live Demo
-Скоро на Vercel (я помогу задеплоить в следующем сообщении)
+## ✨ Возможности
 
-## Как запустить локально (2 минуты)
-1. Нажми **Code** → **Download ZIP** → распакуй
-2. Установи Python + Node.js (если нет — пиши, дам ссылки)
-3. В папке `backend`: `pip install -r requirements.txt` → `uvicorn main:app --reload`
-4. В папке `frontend`: `npm install` → `npm run dev`
+- Загрузка документов **PDF / DOCX / TXT**
+- Автоматический **RAG** (поиск по загруженным файлам)
+- **Streaming-ответы** в реальном времени
+- Поддержка трёх топовых моделей:
+  - **Grok** (xAI) 🚀
+  - **Claude 3.5 Sonnet** 🌲
+  - **GPT-4o** 🔥
+- Красивый современный интерфейс (тёмная тема)
+- Память чата + показ источников
 
-Автор: **David Rebrukh** — Full Stack AI Developer  
-[LinkedIn](https://www.linkedin.com/in/david-rebrukh/) | [Другие проекты](#)
+---
 
-⭐ Star, если понравилось!
+## 🛠 Tech Stack
+
+| Слой       | Технологии                              |
+|------------|-----------------------------------------|
+| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS |
+| **Backend**  | FastAPI, LangChain, LangSmith          |
+| **Vector DB** | Supabase (PostgreSQL + pgvector)      |
+| **LLM**      | Grok API, Anthropic, OpenAI            |
+| **Деплой**   | Vercel (frontend) + Railway/Supabase (backend) |
+
+---
+
+## 🚀 Как запустить локально (2 минуты)
+
+```bash
+# 1. Backend
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+
+# 2. Frontend (в новом терминале)
+cd ../frontend
+npm install
+npm run dev
