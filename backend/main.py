@@ -14,18 +14,21 @@ load_dotenv()
 
 app = FastAPI(title="RAG AI Assistant")
 
+# === CORS — самое важное ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*", "https://rag-ai-assistant-smoky.vercel.app", "http://localhost:3000"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Health check
 @app.get("/health")
 async def health():
     return {"status": "ok", "llm": "Grok", "backend": "живой"}
 
-# Supabase
+# Supabase + embeddings
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 embeddings = OpenAIEmbeddings()
 
@@ -66,7 +69,7 @@ async def chat(data: dict):
     docs = vector_store.similarity_search(message, k=4)
     context = "\n".join([d.page_content for d in docs])
     
-    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian:"
+    prompt = f"Context: {context}\n\nQuestion: {message}\nAnswer in Russian, be helpful and concise:"
     response = llm.invoke([HumanMessage(content=prompt)])
     
     return {"response": response.content}
