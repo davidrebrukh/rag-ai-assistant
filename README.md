@@ -1,26 +1,38 @@
 # RAG AI Assistant
 
-**Production-ready Full-Stack RAG приложение**  
+**Production Full-Stack RAG AI**  
 Next.js 15 + FastAPI + Supabase pgvector + Grok / Claude 3.5 / GPT-4o
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black) 
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green) 
-![Supabase](https://img.shields.io/badge/Supabase-blue) 
-![LangChain](https://img.shields.io/badge/LangChain-orange)
+![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=flat-square) 
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?style=flat-square) 
+![Supabase](https://img.shields.io/badge/Supabase-pgvector-blue?style=flat-square) 
+![LangChain](https://img.shields.io/badge/LangChain-0.3-orange?style=flat-square) 
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square)
 
-## ✨ Что умеет
-- Загружать PDF, DOCX, TXT
-- Искать по документам (RAG)
-- Отвечать с помощью Grok, Claude или GPT-4o
-- Streaming-ответы (как ChatGPT)
-- Красивый современный дизайн
+## ✨ Features
+- Загрузка PDF / DOCX / TXT
+- Автоматический RAG (поиск по документам)
+- Streaming-ответы в реальном времени
+- Поддержка 3 моделей: **Grok**, **Claude 3.5 Sonnet**, **GPT-4o**
+- Красивый современный UI (shadcn-style + Tailwind)
+- Chat memory и sources
 
 ## Tech Stack
-- Frontend: Next.js 15 + TypeScript + Tailwind
-- Backend: FastAPI + LangChain
-- Vector DB: Supabase (pgvector)
-- LLMs: Grok, Claude 3.5, GPT-4o
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind
+- **Backend**: FastAPI, LangChain, Supabase
+- **Vector DB**: pgvector
+- **LLMs**: Grok API, Anthropic, OpenAI
 
-⭐ Star если понравилось!
+## Live Demo
+Скоро на Vercel (я помогу задеплоить в следующем сообщении)
 
-Автор: David Rebrukh — Full Stack AI Developer
+## Как запустить локально (2 минуты)
+1. Нажми **Code** → **Download ZIP** → распакуй
+2. Установи Python + Node.js (если нет — пиши, дам ссылки)
+3. В папке `backend`: `pip install -r requirements.txt` → `uvicorn main:app --reload`
+4. В папке `frontend`: `npm install` → `npm run dev`
+
+Автор: **David Rebrukh** — Full Stack AI Developer  
+[LinkedIn](https://www.linkedin.com/in/david-rebrukh/) | [Другие проекты](#)
+
+⭐ Star, если понравилось!
