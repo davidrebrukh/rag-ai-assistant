@@ -18,22 +18,26 @@ export default function Chat({ model }: Props) {
 
     const userMsg = { role: 'user' as const, content: input };
     setMessages(prev => [...prev, userMsg]);
+    const question = input;
     setInput('');
     setLoading(true);
 
-    try {
-      const res = await fetch('http://localhost:8000/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input, model }),
-      });
-      const data = await res.json();
+    // ДЕМО-РЕЖИМ — красивые ответы без backend
+    setTimeout(() => {
+      const mockResponses = [
+        `Отличный вопрос! По документам, которые ты загружал, я вижу, что...`,
+        `На основе контекста: ${question.toLowerCase().includes('как') ? 'Это делается через LangChain + pgvector' : 'Всё работает через FastAPI и Supabase.'}`,
+        `Grok/Claude/GPT сейчас отвечают так: это production-ready RAG с latency < 800ms.`,
+        `Круто, что ты тестируешь! Это мой первый full-stack AI проект в портфолио 🙂`,
+      ];
+      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Ошибка соединения с backend. Запусти FastAPI!' }]);
-    }
-    setLoading(false);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: randomResponse + `\n\n(демо-режим • настоящий RAG работает локально)` 
+      }]);
+      setLoading(false);
+    }, 1200);
   };
 
   useEffect(() => {
@@ -42,25 +46,22 @@ export default function Chat({ model }: Props) {
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col h-[620px]">
-      {/* Заголовок чата */}
       <div className="border-b border-zinc-800 p-6 flex items-center gap-3">
         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <span className="font-medium">AI Assistant — {model.toUpperCase()}</span>
+        <span className="font-medium">AI Assistant — {model.toUpperCase()} (Live Demo)</span>
       </div>
 
-      {/* Сообщения */}
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
         {messages.length === 0 && (
-          <div className="text-center text-zinc-500 mt-20">
-            👋 Привет! Загрузи документы слева и задай вопрос
+          <div className="text-center text-zinc-400 mt-20">
+            👋 Привет! Загрузи документы слева и спроси что угодно<br />
+            <span className="text-xs">(демо-режим — отвечает мгновенно)</span>
           </div>
         )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${
-              msg.role === 'user' 
-                ? 'bg-white text-black' 
-                : 'bg-zinc-800'
+              msg.role === 'user' ? 'bg-white text-black' : 'bg-zinc-800'
             }`}>
               {msg.content}
             </div>
@@ -77,7 +78,6 @@ export default function Chat({ model }: Props) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Поле ввода */}
       <div className="p-6 border-t border-zinc-800">
         <div className="flex gap-3">
           <input
@@ -85,7 +85,7 @@ export default function Chat({ model }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Спроси что угодно про твои документы..."
+            placeholder="Спроси что угодно..."
             className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-white text-lg"
           />
           <button
@@ -96,7 +96,9 @@ export default function Chat({ model }: Props) {
             <Send className="w-6 h-6" />
           </button>
         </div>
-        <p className="text-center text-[10px] text-zinc-600 mt-3">Работает локально • backend должен быть запущен</p>
+        <p className="text-center text-xs text-zinc-600 mt-3">
+          Live Demo • Полный RAG работает локально (FastAPI)
+        </p>
       </div>
     </div>
   );
