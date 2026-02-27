@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
+const BACKEND_URL = 'https://rag-ai-assistant-production.up.railway.app';
+
 interface Props {
   model: 'grok' | 'claude' | 'gpt';
 }
@@ -22,22 +24,19 @@ export default function Chat({ model }: Props) {
     setInput('');
     setLoading(true);
 
-    // ДЕМО-РЕЖИМ — красивые ответы без backend
-    setTimeout(() => {
-      const mockResponses = [
-        `Отличный вопрос! По документам, которые ты загружал, я вижу, что...`,
-        `На основе контекста: ${question.toLowerCase().includes('как') ? 'Это делается через LangChain + pgvector' : 'Всё работает через FastAPI и Supabase.'}`,
-        `Grok/Claude/GPT сейчас отвечают так: это production-ready RAG с latency < 800ms.`,
-        `Круто, что ты тестируешь! Это мой первый full-stack AI проект в портфолио 🙂`,
-      ];
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+    try {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question }),
+      });
+      const data = await res.json();
 
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: randomResponse + `\n\n(демо-режим • настоящий RAG работает локально)` 
-      }]);
-      setLoading(false);
-    }, 1200);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Ошибка соединения с backend' }]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -48,14 +47,14 @@ export default function Chat({ model }: Props) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col h-[620px]">
       <div className="border-b border-zinc-800 p-6 flex items-center gap-3">
         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <span className="font-medium">AI Assistant — {model.toUpperCase()} (Live Demo)</span>
+        <span className="font-medium">Grok AI Assistant — Live</span>
       </div>
 
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
         {messages.length === 0 && (
           <div className="text-center text-zinc-400 mt-20">
-            👋 Привет! Загрузи документы слева и спроси что угодно<br />
-            <span className="text-xs">(демо-режим — отвечает мгновенно)</span>
+            👋 Загрузи документы и спроси что угодно!<br />
+            <span className="text-xs">Работает через Grok + RAG</span>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -71,7 +70,7 @@ export default function Chat({ model }: Props) {
           <div className="flex justify-start">
             <div className="bg-zinc-800 px-5 py-3 rounded-3xl flex items-center gap-3">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Думаю...
+              Grok думает...
             </div>
           </div>
         )}
@@ -85,7 +84,7 @@ export default function Chat({ model }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Спроси что угодно..."
+            placeholder="Спроси что угодно про документы..."
             className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-white text-lg"
           />
           <button
@@ -96,9 +95,6 @@ export default function Chat({ model }: Props) {
             <Send className="w-6 h-6" />
           </button>
         </div>
-        <p className="text-center text-xs text-zinc-600 mt-3">
-          Live Demo • Полный RAG работает локально (FastAPI)
-        </p>
       </div>
     </div>
   );
